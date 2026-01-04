@@ -1,0 +1,62 @@
+#pragma once
+#ifndef CELL_H
+#define CELL_H
+
+#include <iostream>
+#include "Vector2.h"
+#include <vector>
+#include <stdexcept>
+#include <queue>
+
+using namespace std;
+
+enum class CellState{
+    Empty,
+    Wall,
+    Start,
+    Goal,
+    Frontier,
+    Visited,
+    Failure,
+    Path
+};
+
+
+enum class Algorithme {
+    BFS,
+    Dijkstra,
+    Astart
+};
+
+template<class T>
+struct NodeCompare {
+    bool operator()(T* a, T* b) const {
+        return *a > *b; // min-heap
+    }
+};
+
+
+class Cell {
+public:
+    int x;
+    int y;
+    CellState state;
+    Cell* parent;
+
+    Cell(int _x, int _y, CellState _state = CellState::Empty) :
+        x(_x),
+        y(_y),
+        state(_state),
+        parent(nullptr)
+    {
+    };
+    virtual ~Cell() = default;
+
+    void setState(CellState _state);
+    CellState getState() const;
+    bool isWalkable() const;
+    bool operator==(const Cell& c) const;
+    bool operator!=(const Cell& c) const;
+};
+
+#endif

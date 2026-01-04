@@ -1,0 +1,54 @@
+#include "BFS.h"
+
+BFS::BFS(Grid& _grid, Cell* _start, Cell* _goal) :
+    grid(_grid),
+    start(_start),
+    goal(_goal)
+{
+    inWait.push(_start);
+}
+
+bool BFS::finished() const {
+    return done == true;
+}
+
+void BFS::addToFrontier(Cell* neighbor) {
+    if (inFrontier.find(neighbor) == inFrontier.end()) {
+        inWait.push(neighbor);
+        inFrontier.insert(neighbor);
+    }
+}
+
+Step BFS::step() {
+    if (inWait.empty()) {
+        done = true;
+        return Step(-1, -1, CellState::Failure);
+    }
+    Cell* current = inWait.front();
+    inWait.pop();
+    if (*current == *goal) {
+        done = true;
+		Step step(current->x, current->y, CellState::Goal);
+		step.parent.x = current->parent ? current->parent->x : -1;
+		step.parent.y = current->parent ? current->parent->y : -1;
+        return step;
+    }
+    current->setState(CellState::Visited);
+    
+    Step step(current->x, current->y, CellState::Visited);
+	step.parent.x = current->parent ? current->parent->x : -1;
+	step.parent.y = current->parent ? current->parent->y : -1;
+
+    vector<Cell*> neighbors = grid.getNeighbors(current->x, current->y);
+
+    for (Cell* n : neighbors) {
+        if (n->state != CellState::Visited && n->isWalkable()) {
+            if (!n->parent) {
+                n->parent = current;
+            }
+            n->setState(CellState::Frontier);
+            addToFrontier(n);
+        }
+    }
+    return step;
+}
