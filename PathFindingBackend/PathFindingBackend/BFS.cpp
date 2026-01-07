@@ -24,20 +24,21 @@ Step BFS::step() {
         done = true;
         return Step(-1, -1, CellState::Failure);
     }
+
     Cell* current = inWait.front();
     inWait.pop();
+
+    Step step(current->col, current->row, CellState::Visited);
+    step.parent.col = current->parent ? current->parent->col : -1;
+    step.parent.row = current->parent ? current->parent->row : -1;
+
     if (*current == *goal) {
         done = true;
-		Step step(current->col, current->row, CellState::Goal);
-		step.parent.col = current->parent ? current->parent->col : -1;
-		step.parent.row = current->parent ? current->parent->row : -1;
+		step.state = CellState::Goal;
         return step;
     }
+
     current->setState(CellState::Visited);
-    
-    Step step(current->col, current->row, CellState::Visited);
-	step.parent.col = current->parent ? current->parent->col : -1;
-	step.parent.row = current->parent ? current->parent->row : -1;
 
     vector<Cell*> neighbors = grid.getNeighbors(current->col, current->row);
 
@@ -50,5 +51,10 @@ Step BFS::step() {
             addToFrontier(n);
         }
     }
+
+    if (*current == *start) {
+        step.state = CellState::Start;
+    }
+
     return step;
 }

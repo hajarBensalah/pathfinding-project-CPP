@@ -18,7 +18,8 @@ enum class CellState{
     Frontier,
     Visited,
     Failure,
-    Path
+    Path,
+    Done
 };
 
 

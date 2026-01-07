@@ -16,7 +16,12 @@ bool Dijkstra::finished() const {
 
 
 Step Dijkstra::step() {
+	if (done) {
+		return Step(-1, -1, CellState::Done);
+	}
+
 	DijkstraNode* current = nullptr;
+
 	while (!inWait.empty()) {
 		current = inWait.top();
 		inWait.pop();
@@ -27,29 +32,32 @@ Step Dijkstra::step() {
 		// process current
 		break;
 	}
+
 	if (!current) {
 		done = true;
 		return Step(-1, -1, CellState::Failure);
 	}
 
-	if (*current == *goal) {
-		done = true;
-		Step step(current->col, current->row, CellState::Goal);
-		step.parent.col = current->parent ? current->parent->col : -1;
-		step.parent.row = current->parent ? current->parent->row : -1;
-		return step;
-	}
-	current->setState(CellState::Visited);
 	Step step(current->col, current->row, CellState::Visited);
 	step.parent.col = current->parent ? current->parent->col : -1;
 	step.parent.row = current->parent ? current->parent->row : -1;
+
+	if (*current == *goal) {
+		done = true;
+		step.state = CellState::Goal;
+		return step;
+	}
+
+	current->setState(CellState::Visited);
 
 	vector<Cell*> neighbors = grid.getNeighbors(current->col, current->row);
 
 	for (auto n : neighbors) {
 		if(n->isWalkable() && n->getState() != CellState::Visited) {
 			DijkstraNode* neighborNode = dynamic_cast<DijkstraNode*>(n);
+
 			int newCost = current->cost + 1; // Assuming uniform cost for each step
+			
 			if (newCost < neighborNode->cost) {
 				neighborNode->cost = newCost;
 				neighborNode->parent = current;
@@ -58,5 +66,10 @@ Step Dijkstra::step() {
 			}
 		}
 	}
+
+	if (*current == *start) {
+		step.state = CellState::Start;
+	}
+
 	return step;
 }
