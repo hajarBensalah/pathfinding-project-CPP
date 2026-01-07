@@ -34,17 +34,17 @@ Step Dijkstra::step() {
 
 	if (*current == *goal) {
 		done = true;
-		Step step(current->x, current->y, CellState::Goal);
-		step.parent.x = current->parent ? current->parent->x : -1;
-		step.parent.y = current->parent ? current->parent->y : -1;
+		Step step(current->col, current->row, CellState::Goal);
+		step.parent.col = current->parent ? current->parent->col : -1;
+		step.parent.row = current->parent ? current->parent->row : -1;
 		return step;
 	}
 	current->setState(CellState::Visited);
-	Step step(current->x, current->y, CellState::Visited);
-	step.parent.x = current->parent ? current->parent->x : -1;
-	step.parent.y = current->parent ? current->parent->y : -1;
+	Step step(current->col, current->row, CellState::Visited);
+	step.parent.col = current->parent ? current->parent->col : -1;
+	step.parent.row = current->parent ? current->parent->row : -1;
 
-	vector<Cell*> neighbors = grid.getNeighbors(current->x, current->y);
+	vector<Cell*> neighbors = grid.getNeighbors(current->col, current->row);
 
 	for (auto n : neighbors) {
 		if(n->isWalkable() && n->getState() != CellState::Visited) {

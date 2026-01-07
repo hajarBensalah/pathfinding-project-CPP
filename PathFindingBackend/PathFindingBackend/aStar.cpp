@@ -14,11 +14,19 @@ bool aStar::finished() const {
 }
 
 int aStar::heuristic(aStarNode* a, aStarNode* b) {
-	return abs(a->x - b->x) + abs(a->y - b->y); // Manhattan distance
+	return abs(a->col - b->col) + abs(a->row - b->row); // Manhattan distance
 }
 
+
+
 Step aStar::step() {
+
+    if (done) {
+        return Step(-1, -1, CellState::Failure);
+    }
+
 	aStarNode* current = nullptr;
+
 	while (!openSet.empty()) {
 		current = openSet.top();
 		openSet.pop();
@@ -28,14 +36,18 @@ Step aStar::step() {
 
 		break;
 	}
+
 	if (!current) {
 		done = true;
 		cout << "get out from !current step("<< endl;
 		return Step(-1, -1, CellState::Failure);
 	}
-	Step step(current->x, current->y, CellState::Visited);
-	step.parent.x = current->parent ? current->parent->x : -1;
-	step.parent.y = current->parent ? current->parent->y : -1;
+
+	Step step(current->col, current->row, CellState::Visited);
+
+	step.parent.col = current->parent ? current->parent->col : -1;
+	step.parent.row = current->parent ? current->parent->row : -1;
+
 	if (*current == *goal) {
 		done = true;
 		step.state = CellState::Goal;
@@ -44,20 +56,32 @@ Step aStar::step() {
 
 	closedSet.insert(current);
 
-	vector<Cell*> neighbors = grid.getNeighbors(current->x, current->y);
+	vector<Cell*> neighbors = grid.getNeighbors(current->col, current->row);
 
-	for (auto n : neighbors) {
-		if (n->isWalkable()) {
-			aStarNode* neighborNode = dynamic_cast<aStarNode*>(n);
-			int tentativeGCost = current->gCost + 1; // Assuming uniform cost for each step
-			if (tentativeGCost < neighborNode->gCost) {
-				neighborNode->gCost = tentativeGCost;
-				neighborNode->hCost = heuristic(neighborNode, goal);
-				neighborNode->parent = current;
-				neighborNode->setState(CellState::Frontier);
-				openSet.push(neighborNode);
-			}
-		}
-	}
+    for (Cell* n : neighbors) {
+        aStarNode* neighbor = dynamic_cast<aStarNode*>(n);
+        if (!neighbor) continue;
+
+        if (!neighbor->isWalkable()) continue;
+        if (closedSet.count(neighbor)) continue;
+
+        int tentativeG = current->gCost + 1;
+
+        if (tentativeG < neighbor->gCost) {
+            neighbor->parent = current;
+            neighbor->gCost = tentativeG;
+            neighbor->hCost = heuristic(neighbor, goal);
+            neighbor->setState(CellState::Frontier);
+
+            if (inOpenSet.count(neighbor) == 0) {
+                openSet.push(neighbor);
+                inOpenSet.insert(neighbor);
+            }
+        }
+    }
+
+    if (*current == *start) {
+        step.state = CellState::Start;
+    }
 	return step;
 }

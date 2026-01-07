@@ -6,12 +6,12 @@
 
 class Step {
 public:
-    int x;
-    int y;
+    int col;
+    int row;
     CellState state;
 	Vector2 parent = { -1, -1 };
 
-    Step(int _x, int _y, CellState _state) :x(_x), y(_y), state(_state)
+    Step(int _col, int _row, CellState _state) :col(_col), row(_row), state(_state)
     {
     }
 };

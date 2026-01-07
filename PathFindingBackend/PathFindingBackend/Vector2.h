@@ -3,8 +3,8 @@
 #define VECTOR2_H
 
 struct Vector2 {
-    int x;
-    int y;
+    int col;
+    int row;
 };
 
 #endif

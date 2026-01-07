@@ -80,19 +80,19 @@ int main() {
         int rows = json["rows"];
 		int cols = json["cols"];
 
-		int startX = json["start"]["x"];
-		int startY = json["start"]["y"];
+		int startCol = json["start"]["col"];
+		int startRow = json["start"]["row"];
 
-		int goalX = json["end"]["x"];
-		int goalY = json["end"]["y"];
+		int goalCol = json["end"]["col"];
+		int goalRow = json["end"]["row"];
 
 		auto walls_json = json["walls"];
 
         std::vector<Vector2> walls;
 
         for (const auto& w : walls_json) {
-			cout << "Wall at: (" << w["x"] << ", " << w["y"] << ")\n";
-            walls.push_back({ w["x"].get<int>(), w["y"].get<int>() });
+			cout << "Wall at: (" << w["col"] << ", " << w["row"] << ")\n";
+            walls.push_back({ w["col"].get<int>(), w["row"].get<int>() });
         }
 
         if (walls.size() == 0) {
@@ -101,17 +101,17 @@ int main() {
 
         grid = new Grid(rows, cols, toAlgo(algoStr), walls);
 
-        start = grid->getCell(startX, startY);
+        start = grid->getCell(startCol, startRow);
         start->setState(CellState::Start);
 
-        goal = grid->getCell(goalX, goalY);
+        goal = grid->getCell(goalCol, goalRow);
 		goal->setState(CellState::Goal);
 
 		pathFinder = PathFinder::createPathFinder(grid->algoType, *grid, start, goal);
 
         for(int i = 0; i < grid->rows; i++) {
             for(int j = 0; j < grid->cols; j++) {
-				cout << toString(grid->cells[i][j]->state) << "     ";
+				cout << toString(grid->cells[i][j]->state)[0] << "  ";
             }
             cout << endl;
 		}
@@ -137,23 +137,23 @@ int main() {
         /*Step s = bfs->step();*/
         Step s = pathFinder->step();
 
-		cout << "Step: (" << s.x << ", " << s.y << ") State: " << toString(s.state) << "\n";
+		cout << "Step: (" << s.col << ", " << s.row << ") State: " << toString(s.state) << "\n";
 
         std::string json =
-            "{ \"x\": " + std::to_string(s.x) +
-            ", \"y\": " + std::to_string(s.y) +
+            "{ \"col\": " + std::to_string(s.col) +
+            ", \"row\": " + std::to_string(s.row) +
             ", \"state\": \"" + toString(s.state) + "\"" +
             ", \"parent\": " +
-			(s.parent.x != -1 && s.parent.y != -1
-                ? "{ \"x\": " + std::to_string(s.parent.x) +
-                ", \"y\": " + std::to_string(s.parent.y) + " }"
+			(s.parent.col != -1 && s.parent.row != -1
+                ? "{ \"col\": " + std::to_string(s.parent.col) +
+                ", \"row\": " + std::to_string(s.parent.row) + " }"
                 : "null") +
             " }";
 
         cout << endl;
         for (int i = 0; i < grid->rows; i++) {
             for (int j = 0; j < grid->cols; j++) {
-                cout << toString(grid->cells[i][j]->state) << "     ";
+                cout << toString(grid->cells[i][j]->state)[0] << "  ";
             }
             cout << endl;
         }

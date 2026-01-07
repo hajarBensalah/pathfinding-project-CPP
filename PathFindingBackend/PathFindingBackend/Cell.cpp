@@ -13,7 +13,7 @@ bool Cell::isWalkable() const {
 }
 
 bool Cell::operator==(const Cell& c) const {
-    return x == c.x && y == c.y;
+    return col == c.col && row == c.row;
 }
 
 bool Cell::operator!=(const Cell& c) const {

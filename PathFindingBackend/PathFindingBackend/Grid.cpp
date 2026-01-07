@@ -2,9 +2,9 @@
 #include "DijkstraNode.h"
 #include "aStarNode.h"
 
-bool inWalls(int x, int y, const std::vector<Vector2>& walls) {
+bool inWalls(int col, int row, const std::vector<Vector2>& walls) {
     for (const auto& wall : walls) {
-        if (wall.x == x && wall.y == y) {
+        if (wall.col == col && wall.row == row) {
             return true;
         }
     }
@@ -12,14 +12,14 @@ bool inWalls(int x, int y, const std::vector<Vector2>& walls) {
 }
 
 
-Cell* Grid::algoToCell(Algorithme algorithme, int x, int y, CellState state) {
+Cell* Grid::algoToCell(Algorithme algorithme, int col, int row, CellState state) {
     switch (algorithme) {
         case Algorithme::BFS:
-            return new Cell(x, y, state);
+            return new Cell(col, row, state);
         case Algorithme::Dijkstra:
-            return new DijkstraNode(x, y, state);
+            return new DijkstraNode(col, row, state);
         case Algorithme::Astart:
-            return new aStarNode(x, y, state);
+            return new aStarNode(col, row, state);
         default:
             throw std::invalid_argument("Unknown algorithm");
     }
@@ -33,14 +33,14 @@ Grid::Grid(int _rows, int _cols, Algorithme algorithme, std::vector<Vector2> wal
     // Resize outer vector
     cells.resize(rows);
 
-    for (int i = 0; i < rows; ++i) {
+    for (int r = 0; r < rows; ++r) {
         // Resize inner vector
-        cells[i].resize(cols);
+        cells[r].resize(cols);
 
-        for (int j = 0; j < cols; ++j) {
+        for (int c = 0; c < cols; ++c) {
             // Allocate new Cell and store pointer
-			CellState state = inWalls(i, j, walls) ? CellState::Wall : CellState::Empty;
-			cells[i][j] = algoToCell(algorithme, i, j, state);
+			CellState state = inWalls(c, r, walls) ? CellState::Wall : CellState::Empty;
+			cells[r][c] = algoToCell(algorithme, c, r, state);
         }
     }
 }
@@ -53,36 +53,44 @@ Grid::~Grid() {
 
 
 
-bool Grid::inRange(int i, int j) {
-    return (i >= 0 && i < rows) && (j >= 0 && j < cols);
+bool Grid::inRange(const int& col, const int& row) const {
+    return (row >= 0 && row < rows) && (col >= 0 && col < cols);
 }
 
-Cell*& Grid::getCell(int x, int y) {
-    if (!inRange(x, y))
+Cell*& Grid::getCell(int col, int row) {
+    if (!inRange(col, row))
         throw std::out_of_range("Cell coordinates out of range");
-    return cells[x][y];
+    return cells[row][col];
 }
 
 
-vector<Cell*> Grid::getNeighbors(int i, int j) {
-    if (!inRange(i, j))
+vector<Cell*> Grid::getNeighbors(int col, int row) {
+    if (!inRange(col, row))
         throw std::out_of_range("Cell coordinates out of range");
 
     vector<Cell*> neighbors;
 
-    if (inRange(i - 1, j))
-        neighbors.push_back(getCell(i - 1, j));
-    if (inRange(i + 1, j))
-        neighbors.push_back(getCell(i + 1, j));
-    if (inRange(i, j - 1))
-        neighbors.push_back(getCell(i, j - 1));
-    if (inRange(i, j + 1))
-        neighbors.push_back(getCell(i, j + 1));
+    if (inRange(col, row - 1)){
+        neighbors.push_back(getCell(col, row - 1));
+        cout << "adding neighbor :("<<col<<", "<< row - 1<<")" << endl;
+    }
+    if (inRange(col, row + 1)) {
+        neighbors.push_back(getCell(col, row + 1));
+        cout << "adding neighbor :(" << col << ", " << row + 1 << ")" << endl;
+    }
+    if (inRange(col - 1, row)) {
+        neighbors.push_back(getCell(col - 1, row));
+        cout << "adding neighbor :(" << col - 1 << ", " << row << ")" << endl;
+    }
+    if (inRange(col + 1, row)) {
+        neighbors.push_back(getCell(col + 1, row));
+        cout << "adding neighbor :(" << col + 1 << ", " << row << ")" << endl;
+    }
     return neighbors;
 }
 
-void Grid::setCellState(int x, int y, CellState state) {
-    if (!inRange(x, y))
+void Grid::setCellState(int col, int row, CellState state) {
+    if (!inRange(col, row))
         throw std::out_of_range("Cell coordinates out of range");
-	cells[x][y]->setState(state);
+	cells[row][col]->setState(state);
 }

@@ -38,14 +38,14 @@ struct NodeCompare {
 
 class Cell {
 public:
-    int x;
-    int y;
+    int col;
+    int row;
     CellState state;
     Cell* parent;
 
-    Cell(int _x, int _y, CellState _state = CellState::Empty) :
-        x(_x),
-        y(_y),
+    Cell(int _col, int _row, CellState _state = CellState::Empty) :
+        col(_col),
+        row(_row),
         state(_state),
         parent(nullptr)
     {

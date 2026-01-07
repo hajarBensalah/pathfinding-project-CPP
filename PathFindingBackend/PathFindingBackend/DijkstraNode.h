@@ -6,8 +6,8 @@
 class DijkstraNode : public Cell {
 	public:
 	int cost;
-	DijkstraNode(int _x, int _y, CellState _state = CellState::Empty) :
-		Cell(_x, _y, _state),
+	DijkstraNode(int _col, int _row, CellState _state = CellState::Empty) :
+		Cell(_col, _row, _state),
 		cost(INT_MAX)
 	{
 	};

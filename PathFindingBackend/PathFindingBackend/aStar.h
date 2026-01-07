@@ -10,6 +10,8 @@ private:
 	aStarNode* goal;
 	std::priority_queue<aStarNode*, std::vector<aStarNode*>, NodeCompare<aStarNode>> openSet;
 	std::unordered_set<aStarNode*> closedSet;
+	
+	std::unordered_set<aStarNode*> inOpenSet;
 
 	int heuristic(aStarNode* a, aStarNode* b);
 	bool done = false;
