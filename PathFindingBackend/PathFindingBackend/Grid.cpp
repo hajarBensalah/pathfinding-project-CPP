@@ -18,8 +18,12 @@ Cell* Grid::algoToCell(Algorithme algorithme, int col, int row, CellState state)
             return new Cell(col, row, state);
         case Algorithme::Dijkstra:
             return new DijkstraNode(col, row, state);
-        case Algorithme::Astart:
-            return new aStarNode(col, row, state);
+        case Algorithme::Astart: {
+            aStarNode* node = new aStarNode(col, row, state);
+            if (state != CellState::Start)
+                node->gCost = INT_MAX;
+            return node;
+        }
         default:
             throw std::invalid_argument("Unknown algorithm");
     }
