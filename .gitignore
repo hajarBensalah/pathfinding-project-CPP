@@ -1,0 +1,25 @@
+# Visual Studio
+.vs/
+*.VC.db
+*.VC.opendb
+*.suo
+
+# Build
+Debug/
+Release/
+x64/
+x86/
+
+# Executables
+*.exe
+*.out
+
+# Cache
+*.ipch
+*.pdb
+
+# Logs
+*.log
+
+# Packages (optionnel)
+packages/
