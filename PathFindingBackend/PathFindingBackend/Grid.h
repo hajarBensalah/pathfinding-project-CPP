@@ -1,9 +1,10 @@
-#pragma once
+﻿#pragma once
 #ifndef GRID_H
 #define GRID_H
 
 #include "Cell.h"
-
+#include <sstream>
+#include "Step.h"
 
 
 
@@ -21,5 +22,6 @@ public:
     vector<Cell*> getNeighbors(int c, int r);
     void setCellState(int col, int row, CellState state);
 	Cell* algoToCell(Algorithme algorithme, int col, int row, CellState state);
+    std::string toJson(const Step& stepCell) const;
 };
 #endif

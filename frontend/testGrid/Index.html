@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathFinder — Algorithm Visualizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="noise"></div>
+
+    <header class="header">
+        <div class="logo">
+            <span class="logo-bracket">[</span>PATH<span class="logo-accent">FINDER</span><span class="logo-bracket">]</span>
+        </div>
+        <div class="header-info">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">IDLE</span>
+        </div>
+    </header>
+
+    <main class="main-layout">
+        <aside class="control-panel">
+
+            <!-- MODE -->
+            <div class="panel-section">
+                <div class="section-label">MODE</div>
+                <div class="mode-tabs">
+                    <button class="mode-tab active" id="tab-single"    onclick="setMode('single')">SINGLE</button>
+                    <button class="mode-tab"        id="tab-compare"   onclick="setMode('compare')">COMPARE</button>
+                    <button class="mode-tab"        id="tab-benchmark" onclick="setMode('benchmark')">BENCH</button>
+                </div>
+            </div>
+
+            <!-- ALGO 1 -->
+            <div class="panel-section" id="algo1Section">
+                <div class="section-label" id="algo1SectionLabel">ALGORITHM</div>
+                <div class="algo-buttons">
+                    <button class="algo-btn active" data-algo="BFS"      onclick="selectAlgo(this,1)">BFS</button>
+                    <button class="algo-btn"        data-algo="Dijkstra" onclick="selectAlgo(this,1)">DIJKSTRA</button>
+                    <button class="algo-btn"        data-algo="A*"       onclick="selectAlgo(this,1)">A*</button>
+                </div>
+                <div class="heuristic-box" id="heuristicBox1" style="display:none">
+                    <div class="section-label" style="margin-top:4px;font-size:9px">HEURISTIC</div>
+                    <div class="heuristic-buttons">
+                        <button class="heur-btn active" data-h="Manhattan"  onclick="selectHeuristic(this,1)">MANHATTAN</button>
+                        <button class="heur-btn"        data-h="Euclidean"  onclick="selectHeuristic(this,1)">EUCLIDEAN</button>
+                        <button class="heur-btn"        data-h="Chebyshev"  onclick="selectHeuristic(this,1)">CHEBYSHEV</button>
+                    </div>
+                    <label class="diag-label">
+                        <input type="checkbox" id="diagCheck1" checked> DIAGONAL MOVES
+                    </label>
+                </div>
+            </div>
+
+            <!-- ALGO 2 -->
+            <div class="panel-section" id="algo2Section" style="display:none">
+                <div class="section-label">ALGORITHM · B</div>
+                <div class="algo-buttons">
+                    <button class="algo-btn2"         data-algo="BFS"      onclick="selectAlgo(this,2)">BFS</button>
+                    <button class="algo-btn2 active2" data-algo="Dijkstra" onclick="selectAlgo(this,2)">DIJKSTRA</button>
+                    <button class="algo-btn2"         data-algo="A*"       onclick="selectAlgo(this,2)">A*</button>
+                </div>
+                <div class="heuristic-box" id="heuristicBox2" style="display:none">
+                    <div class="section-label" style="margin-top:4px;font-size:9px">HEURISTIC · B</div>
+                    <div class="heuristic-buttons">
+                        <button class="heur-btn active" data-h="Manhattan"  onclick="selectHeuristic(this,2)">MANHATTAN</button>
+                        <button class="heur-btn"        data-h="Euclidean"  onclick="selectHeuristic(this,2)">EUCLIDEAN</button>
+                        <button class="heur-btn"        data-h="Chebyshev"  onclick="selectHeuristic(this,2)">CHEBYSHEV</button>
+                    </div>
+                    <label class="diag-label">
+                        <input type="checkbox" id="diagCheck2" checked> DIAGONAL MOVES
+                    </label>
+                </div>
+            </div>
+
+            <!-- BENCH CONFIG -->
+            <div class="panel-section" id="benchSection" style="display:none">
+                <div class="section-label">BENCHMARK CONFIG</div>
+                <p class="bench-info-text">Runs all algo+heuristic combos silently and ranks results by speed, cells visited, and path length.</p>
+                <label class="diag-label">
+                    <input type="checkbox" id="benchDiagCheck"> ALLOW DIAGONAL
+                </label>
+            </div>
+
+            <!-- DIAGONAL TOGGLE (A* only) -->
+            <div class="panel-section" id="diagonalSection" style="display:none">
+                <div class="section-label">A* OPTIONS</div>
+                <div class="toggle-row">
+                    <span class="toggle-label">DIAGONAL</span>
+                    <button class="toggle-btn active" id="diagonalBtn" onclick="toggleDiagonal()">ON</button>
+                </div>
+            </div>
+            <div class="panel-section" id="speedSection">
+                <div class="section-label">SPEED</div>
+                <div class="speed-buttons">
+                    <button class="speed-btn"        data-speed="120" onclick="selectSpeed(this)">SLOW</button>
+                    <button class="speed-btn active" data-speed="20"  onclick="selectSpeed(this)">MID</button>
+                    <button class="speed-btn"        data-speed="2"   onclick="selectSpeed(this)">FAST</button>
+                    <button class="speed-btn"        data-speed="0"   onclick="selectSpeed(this)">MAX</button>
+                </div>
+            </div>
+
+            <!-- TOOL -->
+            <div class="panel-section">
+                <div class="section-label">TOOL</div>
+                <div class="tool-buttons">
+                    <button class="tool-btn active" data-tool="wall"  onclick="selectTool(this)"><span>▪</span> WALL</button>
+                    <button class="tool-btn"        data-tool="erase" onclick="selectTool(this)"><span>◻</span> ERASE</button>
+                </div>
+            </div>
+
+            <!-- MAZE -->
+            <div class="panel-section">
+                <div class="section-label">MAZE GENERATOR</div>
+                <div class="maze-buttons">
+                    <button class="maze-btn" onclick="generateMaze('binary')">BINARY TREE</button>
+                    <button class="maze-btn" onclick="generateMaze('recursive')">RECURSIVE DIV</button>
+                    <button class="maze-btn" onclick="clearWalls()">CLEAR WALLS</button>
+                </div>
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="panel-section">
+                <div class="section-label">ACTIONS</div>
+                <button class="run-btn"  id="runBtn"  onclick="startVisualization()"><span>▶</span> RUN</button>
+                <button class="stop-btn" id="stopBtn" onclick="stopVisualization()" disabled><span>■</span> STOP</button>
+                <button class="reset-btn" onclick="resetAll()">RESET</button>
+            </div>
+
+            <!-- STATS -->
+            <div class="panel-section" id="statsSection">
+                <div class="section-label">STATS</div>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-item"><div class="stat-label">TIME</div><div class="stat-value" id="statTime">--</div></div>
+                    <div class="stat-item"><div class="stat-label">VISITED</div><div class="stat-value" id="statVisited">--</div></div>
+                    <div class="stat-item"><div class="stat-label">PATH</div><div class="stat-value" id="statPath">--</div></div>
+                </div>
+                <div id="compareStats" style="display:none">
+                    <div class="compare-header-row">
+                        <span></span>
+                        <span class="c-algo-lbl" id="cAlgo1Label">A</span>
+                        <span class="c-algo-lbl" id="cAlgo2Label">B</span>
+                    </div>
+                    <div class="compare-stat-row"><span class="cstat-label">TIME</span><span class="cstat-val" id="cTime1">--</span><span class="cstat-val" id="cTime2">--</span></div>
+                    <div class="compare-stat-row"><span class="cstat-label">VISITED</span><span class="cstat-val" id="cVisited1">--</span><span class="cstat-val" id="cVisited2">--</span></div>
+                    <div class="compare-stat-row"><span class="cstat-label">PATH</span><span class="cstat-val" id="cPath1">--</span><span class="cstat-val" id="cPath2">--</span></div>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- CONTENT AREA -->
+        <div class="content-area">
+            <div class="grids-area" id="gridsArea">
+                <div class="grid-wrapper" id="gridWrapper1">
+                    <div class="grid-label" id="gridLabel1">BFS</div>
+                    <canvas id="gridCanvas1" class="grid-canvas"></canvas>
+                </div>
+                <div class="grid-wrapper hidden" id="gridWrapper2">
+                    <div class="grid-label" id="gridLabel2">DIJKSTRA</div>
+                    <canvas id="gridCanvas2" class="grid-canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- BENCHMARK RESULTS -->
+            <div class="bench-panel hidden" id="benchPanel">
+                <div class="bench-panel-header">
+                    <span class="bench-title">BENCHMARK RESULTS</span>
+                    <span id="benchSubtitle" class="bench-subtitle"></span>
+                </div>
+                <div class="bench-progress-row">
+                    <div class="bench-progress-track">
+                        <div class="bench-progress-fill" id="benchProgressFill"></div>
+                    </div>
+                    <span class="bench-progress-text" id="benchProgressText">–</span>
+                </div>
+                <div class="bench-table-scroll">
+                    <table class="bench-table" id="benchTable">
+                        <thead>
+                            <tr>
+                                <th>RANK</th>
+                                <th>ALGORITHM</th>
+                                <th>HEURISTIC</th>
+                                <th>DIAG</th>
+                                <th>TIME (ms)</th>
+                                <th>VISITED</th>
+                                <th>PATH LEN</th>
+                                <th>STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="benchTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="timer-bar" id="timerBar">
+        <span>⏱</span>
+        <span id="timerDisplay">00:00.000</span>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

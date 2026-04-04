@@ -19,3 +19,9 @@ bool Cell::operator==(const Cell& c) const {
 bool Cell::operator!=(const Cell& c) const {
     return !(*this == c);
 }
+
+bool Cell::isDiagonalTo(const Cell& c) const {
+    return std::abs(c.col - col) == 1 &&
+        std::abs(c.row - row) == 1;
+}
+

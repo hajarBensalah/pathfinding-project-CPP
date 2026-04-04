@@ -1,4 +1,5 @@
-﻿  Grid.cpp
+﻿  main.cpp
+C:\Users\hp\Desktop\PathFindingProject\PathFindingBackend\PathFindingBackend\main.cpp(40,1): warning C4715: 'toAlgo' : les chemins de contrôle ne retournent pas tous une valeur
   PathFindingBackend.vcxproj -> C:\Users\hp\Desktop\PathFindingProject\PathFindingBackend\x64\Debug\PathFindingBackend.exe
-  'pwsh.exe' is not recognized as an internal or external command,
-  operable program or batch file.
+  'pwsh.exe' n'est pas reconnu en tant que commande interne
+  ou externe, un programme exécutable ou un fichier de commandes.

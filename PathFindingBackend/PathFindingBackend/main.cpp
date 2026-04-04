@@ -72,7 +72,8 @@ int main() {
         delete grid;
 
         std::cout << "Request body: " << req.body << "\n\n\n";
-
+        int max = INT_MAX;
+        cout << "Initializing grid..." << max << endl;
         auto json = nlohmann::json::parse(req.body);
 
 		string algoStr = json["algorithm"];
@@ -107,7 +108,9 @@ int main() {
         goal = grid->getCell(goalCol, goalRow);
 		goal->setState(CellState::Goal);
 
-		pathFinder = PathFinder::createPathFinder(grid->algoType, *grid, start, goal);
+        bool diagonal = json.value("diagonal", true);
+        std::string heuristic = json.value("heuristic", std::string("Manhattan"));
+        pathFinder = PathFinder::createPathFinder(grid->algoType, *grid, start, goal, diagonal, heuristic);
 
         for(int i = 0; i < grid->rows; i++) {
             for(int j = 0; j < grid->cols; j++) {
@@ -139,16 +142,9 @@ int main() {
 
 		cout << "Step: (" << s.col << ", " << s.row << ") State: " << toString(s.state) << "\n";
 
-        std::string json =
-            "{ \"col\": " + std::to_string(s.col) +
-            ", \"row\": " + std::to_string(s.row) +
-            ", \"state\": \"" + toString(s.state) + "\"" +
-            ", \"parent\": " +
-			(s.parent.col != -1 && s.parent.row != -1
-                ? "{ \"col\": " + std::to_string(s.parent.col) +
-                ", \"row\": " + std::to_string(s.parent.row) + " }"
-                : "null") +
-            " }";
+        
+
+        std::string json = grid->toJson(s);
 
         cout << endl;
         for (int i = 0; i < grid->rows; i++) {
@@ -161,6 +157,59 @@ int main() {
         res.set_content(json, "application/json");
         });
 
+    server.Get("/steps", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+
+        if (!pathFinder) {
+            res.set_content("{\"error\":\"not initialized\"}", "application/json");
+            return;
+        }
+
+        // Parse n param (default 1)
+        int n = 1;
+        if (req.has_param("n")) {
+            try { n = std::stoi(req.get_param_value("n")); }
+            catch (...) { n = 1; }
+        }
+        if (n < 1) n = 1;
+        if (n > 5000) n = 5000; // safety cap
+
+        std::ostringstream json;
+        json << "{\"steps\":[";
+
+        bool first = true;
+        bool done = false;
+
+        for (int i = 0; i < n; i++) {
+            if (pathFinder->finished()) {
+                done = true;
+                break;
+            }
+
+            Step s = pathFinder->step();
+            std::string stepJson = grid->toJson(s);
+
+            if (!first) json << ",";
+            first = false;
+            json << stepJson;
+
+            // Stop early if goal reached or failure
+            if (s.state == CellState::Goal || s.state == CellState::Failure) {
+                done = true;
+                break;
+            }
+        }
+
+        // Also check if finished after loop
+        if (!done && pathFinder->finished()) done = true;
+
+        json << "],\"done\":" << (done ? "true" : "false") << "}";
+
+        res.set_content(json.str(), "application/json");
+        });
+
+
+    
     std::cout << "Backend running on http://localhost:8080\n";
     std::cout << "GET /init\n";
     std::cout << "GET /step\n";

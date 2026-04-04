@@ -1,6 +1,4 @@
-#pragma once
-#ifndef CELL_H
-#define CELL_H
+﻿#pragma once
 
 #include <iostream>
 #include "Vector2.h"
@@ -21,6 +19,9 @@ enum class CellState{
     Path,
     Done
 };
+
+
+
 
 
 enum class Algorithme {
@@ -56,8 +57,7 @@ public:
     void setState(CellState _state);
     CellState getState() const;
     bool isWalkable() const;
+    bool isDiagonalTo(const Cell& c) const;
     bool operator==(const Cell& c) const;
     bool operator!=(const Cell& c) const;
 };
-
-#endif
