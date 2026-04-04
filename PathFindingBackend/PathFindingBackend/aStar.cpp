@@ -1,13 +1,14 @@
-﻿#include "aStar.h"
+#include "aStar.h"
 
 aStar::aStar(Grid& _grid, Cell* _start, Cell* _goal, bool diagonal, Heuristic hType) :
     grid(_grid),
-    start(dynamic_cast<aStarNode*>(_start)),
-    goal(dynamic_cast<aStarNode*>(_goal)),
+    start(static_cast<aStarNode*>(_start)),
+    goal(static_cast<aStarNode*>(_goal)),
     diagonalMovement(diagonal),
     heuristicType(hType)
 {
     openSet.push(start);
+    grid.addFrontier(start);
 }
 
 bool aStar::finished() const {
@@ -29,15 +30,15 @@ double aStar::heuristic(aStarNode* a, aStarNode* b) {
     }
 }
 
-vector<Cell*> aStar::getNeighbors(int c, int r) {
-    vector<Cell*> neighbors = grid.getNeighbors(c, r);
+std::vector<Cell*> aStar::getNeighbors(int c, int r) {
+    std::vector<Cell*> neighbors = grid.getNeighbors(c, r);
     if (!diagonalMovement) {
         return neighbors;
     }
 
     auto free = [&](int x, int y) {
         return grid.inRange(x, y) && grid.getCell(x, y)->isWalkable();
-        };
+    };
 
     // ↖ top-left
     if (free(c, r - 1) && free(c - 1, r))
@@ -74,6 +75,9 @@ Step aStar::step() {
         return Step(-1, -1, CellState::Failure);
     }
 
+    // Current leaves the frontier
+    grid.removeFrontier(current);
+
     if (*current == *start)
         current->gCost = 0;
 
@@ -89,11 +93,10 @@ Step aStar::step() {
 
     closedSet.insert(current);
 
-    vector<Cell*> neighbors = getNeighbors(current->col, current->row);
+    std::vector<Cell*> neighbors = getNeighbors(current->col, current->row);
 
     for (Cell* n : neighbors) {
-        aStarNode* neighbor = dynamic_cast<aStarNode*>(n);
-        if (!neighbor) continue;
+        aStarNode* neighbor = static_cast<aStarNode*>(n);
         if (!neighbor->isWalkable()) continue;
         if (closedSet.count(neighbor)) continue;
 
@@ -104,14 +107,17 @@ Step aStar::step() {
             tentativeG++;
 
         if (tentativeG < neighbor->gCost) {
+            bool wasInFrontier = (neighbor->getState() == CellState::Frontier);
             neighbor->parent = current;
-            neighbor->gCost = tentativeG;
-            neighbor->hCost = heuristic(neighbor, goal);
+            neighbor->gCost  = tentativeG;
+            neighbor->hCost  = heuristic(neighbor, goal);
             neighbor->setState(CellState::Frontier);
             if (inOpenSet.count(neighbor) == 0) {
                 openSet.push(neighbor);
                 inOpenSet.insert(neighbor);
             }
+            if (!wasInFrontier)
+                grid.addFrontier(neighbor);
         }
     }
 

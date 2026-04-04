@@ -1,0 +1,33 @@
+# Stage 1: Build
+FROM gcc:13-bookworm AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends cmake \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+COPY PathFindingBackend/ ./PathFindingBackend/
+
+# Verify header-only deps are present
+RUN test -f PathFindingBackend/PathFindingBackend/httplib.h || \
+    (echo "ERROR: httplib.h missing" && exit 1)
+RUN test -f PathFindingBackend/PathFindingBackend/nlohmann/json.hpp || \
+    (echo "ERROR: json.hpp missing — copy to PathFindingBackend/PathFindingBackend/nlohmann/" && exit 1)
+
+RUN cmake -S PathFindingBackend -B build -DCMAKE_BUILD_TYPE=Release \
+    && cmake --build build --parallel $(nproc)
+
+# Stage 2: Runtime (minimal image)
+FROM debian:bookworm-slim AS runtime
+
+RUN apt-get update && apt-get install -y --no-install-recommends libstdc++6 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN useradd -r -s /bin/false appuser
+WORKDIR /app
+COPY --from=builder /src/build/pathfinding_backend .
+RUN chown appuser:appuser /app/pathfinding_backend
+USER appuser
+
+EXPOSE 8080
+ENV BACKEND_PORT=8080
+CMD ["./pathfinding_backend"]

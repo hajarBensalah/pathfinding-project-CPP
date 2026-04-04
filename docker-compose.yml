@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: pathfinding_backend
+    restart: unless-stopped
+    environment:
+      - BACKEND_PORT=8080
+    networks:
+      - pathfinding_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/step || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: pathfinding_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - pathfinding_net
+    depends_on:
+      backend:
+        condition: service_healthy
+
+networks:
+  pathfinding_net:
+    driver: bridge

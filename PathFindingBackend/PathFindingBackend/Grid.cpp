@@ -1,15 +1,7 @@
-﻿#include "Grid.h"
+#include "Grid.h"
 #include "DijkstraNode.h"
 #include "aStarNode.h"
-
-bool inWalls(int col, int row, const std::vector<Vector2>& walls) {
-    for (const auto& wall : walls) {
-        if (wall.col == col && wall.row == row) {
-            return true;
-        }
-    }
-    return false;
-}
+#include <unordered_set>
 
 
 Cell* Grid::algoToCell(Algorithme algorithme, int col, int row, CellState state) {
@@ -18,29 +10,30 @@ Cell* Grid::algoToCell(Algorithme algorithme, int col, int row, CellState state)
             return new Cell(col, row, state);
         case Algorithme::Dijkstra:
             return new DijkstraNode(col, row, state);
-        case Algorithme::Astart: 
+        case Algorithme::Astart:
             return new aStarNode(col, row, state);
         default:
             throw std::invalid_argument("Unknown algorithm");
     }
 }
 
-Grid::Grid(int _rows, int _cols, Algorithme algorithme, std::vector<Vector2> walls) : 
+Grid::Grid(int _rows, int _cols, Algorithme algorithme, std::vector<Vector2> walls) :
     rows(_rows),
     cols(_cols),
-    algoType(algorithme) 
+    algoType(algorithme)
 {
-    // Resize outer vector
+    // Build wall lookup in O(walls) instead of O(cells * walls)
+    std::unordered_set<int> wallSet;
+    wallSet.reserve(walls.size() * 2);
+    for (const auto& w : walls)
+        wallSet.insert(w.row * _cols + w.col);
+
     cells.resize(rows);
-
     for (int r = 0; r < rows; ++r) {
-        // Resize inner vector
         cells[r].resize(cols);
-
         for (int c = 0; c < cols; ++c) {
-            // Allocate new Cell and store pointer
-			CellState state = inWalls(c, r, walls) ? CellState::Wall : CellState::Empty;
-			cells[r][c] = algoToCell(algorithme, c, r, state);
+            CellState state = wallSet.count(r * cols + c) ? CellState::Wall : CellState::Empty;
+            cells[r][c] = algoToCell(algorithme, c, r, state);
         }
     }
 }
@@ -50,7 +43,6 @@ Grid::~Grid() {
         for (int j = 0; j < cols; j++)
             delete cells[i][j];
 }
-
 
 
 bool Grid::inRange(const int& col, const int& row) const {
@@ -64,36 +56,24 @@ Cell*& Grid::getCell(int col, int row) {
 }
 
 
-vector<Cell*> Grid::getNeighbors(int col, int row) {
+std::vector<Cell*> Grid::getNeighbors(int col, int row) {
     if (!inRange(col, row))
         throw std::out_of_range("Cell coordinates out of range");
 
-    vector<Cell*> neighbors;
+    std::vector<Cell*> neighbors;
 
-    if (inRange(col, row - 1)){
-        neighbors.push_back(getCell(col, row - 1));
-        //cout << "adding neighbor :("<<col<<", "<< row - 1<<")" << endl;
-    }
-    if (inRange(col + 1, row)) {
-        neighbors.push_back(getCell(col + 1, row));
-        //cout << "adding neighbor :(" << col + 1 << ", " << row << ")" << endl;
-    }
-    if (inRange(col, row + 1)) {
-        neighbors.push_back(getCell(col, row + 1));
-        //cout << "adding neighbor :(" << col << ", " << row + 1 << ")" << endl;
-    }
-    if (inRange(col - 1, row)) {
-        neighbors.push_back(getCell(col - 1, row));
-        //cout << "adding neighbor :(" << col - 1 << ", " << row << ")" << endl;
-    }
-    
+    if (inRange(col, row - 1))  neighbors.push_back(getCell(col, row - 1));
+    if (inRange(col + 1, row))  neighbors.push_back(getCell(col + 1, row));
+    if (inRange(col, row + 1))  neighbors.push_back(getCell(col, row + 1));
+    if (inRange(col - 1, row))  neighbors.push_back(getCell(col - 1, row));
+
     return neighbors;
 }
 
 void Grid::setCellState(int col, int row, CellState state) {
     if (!inRange(col, row))
         throw std::out_of_range("Cell coordinates out of range");
-	cells[row][col]->setState(state);
+    cells[row][col]->setState(state);
 }
 
 /* ---------- Helper: CellState → string ---------- */
@@ -114,36 +94,38 @@ std::string Grid::toJson(const Step& stepCell) const {
     if (stepCell.parent.col != -1 && stepCell.parent.row != -1) {
         json << "{ \"col\": " << stepCell.parent.col
             << ", \"row\": " << stepCell.parent.row << " }";
-    }
-    else {
+    } else {
         json << "null";
     }
 
     json << "},";
 
-    // -------- cells array --------
+    // -------- frontier cells (only those in the incremental set) --------
     json << "\"cells\": [";
 
     bool first = true;
-    for (int r = 0; r < rows; ++r) {
-        for (int c = 0; c < cols; ++c) {
-            Cell* cell = cells[r][c];
-            if (!cell) continue;
-            if (cell->state != CellState::Frontier) continue;
-            if (!first) json << ",";
-            first = false;
+    for (Cell* cell : frontierCells) {
+        if (!cell) continue;
+        if (!first) json << ",";
+        first = false;
 
-            json << "{"
-                << "\"col\": " << cell->col << ", "
-                << "\"row\": " << cell->row << ", "
-                << "\"state\": \"" << toString(cell->state) << "\""
-                << "}";
-        }
+        json << "{"
+            << "\"col\": " << cell->col << ", "
+            << "\"row\": " << cell->row << ", "
+            << "\"state\": \"" << toString(cell->state) << "\""
+            << "}";
     }
 
     json << "]";
-
     json << "}";
 
     return json.str();
+}
+
+void Grid::addFrontier(Cell* cell) {
+    frontierCells.insert(cell);
+}
+
+void Grid::removeFrontier(Cell* cell) {
+    frontierCells.erase(cell);
 }

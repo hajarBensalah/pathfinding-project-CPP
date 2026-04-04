@@ -13,7 +13,7 @@ private:
 	Cell* goal;
 	// Add additional members needed for Dijkstra's algorithm
 	bool done = false;
-	priority_queue<DijkstraNode*, vector<DijkstraNode*>, NodeCompare<DijkstraNode>> inWait;
+	std::priority_queue<DijkstraNode*, std::vector<DijkstraNode*>, NodeCompare<DijkstraNode>> inWait;
 
 public:
 	Dijkstra(Grid& _grid, Cell* _start, Cell* _goal);

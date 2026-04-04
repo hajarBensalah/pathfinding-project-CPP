@@ -5,9 +5,10 @@ Dijkstra::Dijkstra(Grid& _grid, Cell* _start, Cell* _goal) :
 	start(_start),
 	goal(_goal)
 {
-	DijkstraNode* startNode = dynamic_cast<DijkstraNode*>(start);
+	DijkstraNode* startNode = static_cast<DijkstraNode*>(start);
 	startNode->cost = 0;
 	inWait.push(startNode);
+	grid.addFrontier(startNode);
 }
 
 bool Dijkstra::finished() const {
@@ -29,7 +30,6 @@ Step Dijkstra::step() {
 		if (current->getState() == CellState::Visited)
 			continue; // outdated entry
 
-		// process current
 		break;
 	}
 
@@ -37,6 +37,9 @@ Step Dijkstra::step() {
 		done = true;
 		return Step(-1, -1, CellState::Failure);
 	}
+
+	// Current leaves the frontier
+	grid.removeFrontier(current);
 
 	Step step(current->col, current->row, CellState::Visited);
 	step.parent.col = current->parent ? current->parent->col : -1;
@@ -50,19 +53,22 @@ Step Dijkstra::step() {
 
 	current->setState(CellState::Visited);
 
-	vector<Cell*> neighbors = grid.getNeighbors(current->col, current->row);
+	std::vector<Cell*> neighbors = grid.getNeighbors(current->col, current->row);
 
 	for (auto n : neighbors) {
-		if(n->isWalkable() && n->getState() != CellState::Visited) {
-			DijkstraNode* neighborNode = dynamic_cast<DijkstraNode*>(n);
+		if (n->isWalkable() && n->getState() != CellState::Visited) {
+			DijkstraNode* neighborNode = static_cast<DijkstraNode*>(n);
 
-			int newCost = current->cost + 1; // Assuming uniform cost for each step
-			
+			int newCost = current->cost + 1;
+
 			if (newCost < neighborNode->cost) {
+				bool wasInFrontier = (neighborNode->getState() == CellState::Frontier);
 				neighborNode->cost = newCost;
 				neighborNode->parent = current;
 				neighborNode->setState(CellState::Frontier);
 				inWait.push(neighborNode);
+				if (!wasInFrontier)
+					grid.addFrontier(neighborNode);
 			}
 		}
 	}

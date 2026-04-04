@@ -1,0 +1,11 @@
+FROM nginx:1.27-alpine
+
+RUN rm -rf /usr/share/nginx/html/*
+COPY frontend/testGrid/ /usr/share/nginx/html/
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Override config.js for Docker — nginx proxies /api → backend:8080
+RUN echo 'window.APP_CONFIG={API_BASE:"/api",CELL_SIZE:18};' > /usr/share/nginx/html/config.js
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

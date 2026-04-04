@@ -38,5 +38,5 @@ public:
 
     Step step() override;
     bool finished() const override;
-    vector<Cell*> getNeighbors(int c, int r);
+    std::vector<Cell*> getNeighbors(int c, int r);
 };

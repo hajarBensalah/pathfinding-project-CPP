@@ -6,8 +6,6 @@
 #include <stdexcept>
 #include <queue>
 
-using namespace std;
-
 enum class CellState{
     Empty,
     Wall,

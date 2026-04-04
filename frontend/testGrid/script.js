@@ -5,7 +5,7 @@
    ============================================ */
 
 const CELL_SIZE = 18;
-const API = "http://localhost:8080";
+const API = window.APP_CONFIG ? window.APP_CONFIG.API_BASE : "http://localhost:8080";
 
 const CELL = { EMPTY:0, WALL:1, START:2, GOAL:3, VISITED:4, PATH:5, FRONTIER:6 };
 
@@ -642,11 +642,12 @@ function buildPayload(algo, heuristic, diagonal, g) {
 }
 
 async function initBackend(payload) {
-    await fetch(`${API}/init`, {
+    const res = await fetch(`${API}/init`, {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify(payload)
     });
+    if (!res.ok) throw new Error(`Backend /init failed: ${res.status}`);
 }
 
 function intoCELL(s) {
@@ -929,6 +930,7 @@ async function runAlgoLoop(g, speedKey) {
         let data;
         try {
             const res = await fetch(`${API}/steps?n=${cfg.batch}`);
+            if (!res.ok) throw new Error(`Backend /steps failed: ${res.status}`);
             data = await res.json();
         } catch(e) {
             return { found:false, visited, goalStep:null, pathCells:[], elapsed: Date.now()-tStart };
