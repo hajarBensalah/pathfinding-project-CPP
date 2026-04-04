@@ -1,5 +1,6 @@
 #pragma once
-#include  "Cell.h"
+#include <climits>
+#include "Cell.h"
 
 class aStarNode : public Cell {
 public:

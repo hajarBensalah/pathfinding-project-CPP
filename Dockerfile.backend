@@ -16,8 +16,8 @@ RUN test -f PathFindingBackend/PathFindingBackend/nlohmann/json.hpp || \
 RUN cmake -S PathFindingBackend -B build -DCMAKE_BUILD_TYPE=Release \
     && cmake --build build --parallel $(nproc)
 
-# Stage 2: Runtime (minimal image)
-FROM debian:bookworm-slim AS runtime
+# Stage 2: Runtime (use same GCC base to guarantee matching libstdc++)
+FROM gcc:13-bookworm AS runtime
 
 RUN apt-get update && apt-get install -y --no-install-recommends libstdc++6 \
     && rm -rf /var/lib/apt/lists/*

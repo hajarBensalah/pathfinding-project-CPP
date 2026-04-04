@@ -14,7 +14,7 @@ const COLORS = {
     [CELL.WALL]:     "#060810",   // near-black, clearly distinct from empty
     [CELL.START]:    "#00e676",
     [CELL.GOAL]:     "#ff3d57",
-    [CELL.VISITED]:  "#0f3d6e",   // clear navy — much more readable
+    [CELL.VISITED]:  "#1976d2",   // light blue — clearly visible explored cells
     [CELL.FRONTIER]: "#2979ff",   // bright electric blue — distinct from visited
     [CELL.PATH]:     "#ffd32a",
 };
@@ -215,9 +215,10 @@ function drawCell(c, col, row, state) {
             break;
     }
 
-    // Grid lines — visible enough to define the grid clearly
+    // Grid lines — thinner on processed cells, visible on empty/wall
     c.shadowBlur = 0;
-    c.strokeStyle = "rgba(255,255,255,0.07)";
+    const processed = state === CELL.VISITED || state === CELL.FRONTIER || state === CELL.PATH;
+    c.strokeStyle = processed ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.07)";
     c.lineWidth = 0.5;
     c.strokeRect(x, y, cs, cs);
 }
