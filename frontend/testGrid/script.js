@@ -11,18 +11,18 @@ const CELL = { EMPTY:0, WALL:1, START:2, GOAL:3, VISITED:4, PATH:5, FRONTIER:6 }
 
 const COLORS = {
     [CELL.EMPTY]:    "#0d1120",
-    [CELL.WALL]:     "#090c14",   // very dark, distinct from empty
-    [CELL.START]:    "#00ff87",
-    [CELL.GOAL]:     "#ff4757",
-    [CELL.VISITED]:  "#16426e",   // more visible blue
-    [CELL.FRONTIER]: "#0066cc",
+    [CELL.WALL]:     "#060810",   // near-black, clearly distinct from empty
+    [CELL.START]:    "#00e676",
+    [CELL.GOAL]:     "#ff3d57",
+    [CELL.VISITED]:  "#0f3d6e",   // clear navy — much more readable
+    [CELL.FRONTIER]: "#2979ff",   // bright electric blue — distinct from visited
     [CELL.PATH]:     "#ffd32a",
 };
 const GLOW = {
-    [CELL.START]:    "#00ff87",
-    [CELL.GOAL]:     "#ff4757",
+    [CELL.START]:    "#00e676",
+    [CELL.GOAL]:     "#ff3d57",
     [CELL.PATH]:     "#ffd32a",
-    [CELL.FRONTIER]: "#0099ff",
+    [CELL.FRONTIER]: "#60a5fa",
 };
 
 // Speed config: { batch = steps per HTTP call, delay = ms between calls, animate = use reveal animation }
@@ -152,76 +152,72 @@ function drawCell(c, col, row, state) {
     const cx = x + cs / 2, cy = y + cs / 2;
 
     c.shadowBlur = 0;
-    c.fillStyle  = COLORS[CELL.EMPTY];
-    c.fillRect(x, y, cs, cs);
 
     switch (state) {
         case CELL.WALL:
-            c.fillStyle = "#070a12";   // very dark, almost black
+            // Clearly distinct from empty: near-black with a faint inset border
+            c.fillStyle = COLORS[CELL.WALL];
             c.fillRect(x, y, cs, cs);
-            // subtle diagonal lines for texture
-            c.strokeStyle = "rgba(255,255,255,0.04)";
-            c.lineWidth = 0.5;
-            for (let i = -cs; i < cs*2; i += 5) {
-                c.beginPath();
-                c.moveTo(x + i, y);
-                c.lineTo(x + i + cs, y + cs);
-                c.stroke();
-            }
+            c.strokeStyle = "rgba(80,100,160,0.12)";
+            c.lineWidth = 1;
+            c.strokeRect(x + 0.5, y + 0.5, cs - 1, cs - 1);
             break;
 
         case CELL.START:
-            c.shadowColor = "#00ff87"; c.shadowBlur = 14;
-            c.fillStyle = "#00ff87";
+            c.fillStyle = COLORS[CELL.EMPTY];
+            c.fillRect(x, y, cs, cs);
+            c.shadowColor = COLORS[CELL.START]; c.shadowBlur = 16;
+            c.fillStyle = COLORS[CELL.START];
             c.beginPath();
-            c.moveTo(x + cs*0.2, y + cs*0.15);
+            c.moveTo(x + cs*0.22, y + cs*0.16);
             c.lineTo(x + cs*0.82, y + cs*0.5);
-            c.lineTo(x + cs*0.2, y + cs*0.85);
+            c.lineTo(x + cs*0.22, y + cs*0.84);
             c.closePath(); c.fill();
             break;
 
         case CELL.GOAL: {
-            const r = cs * 0.33;
-            c.shadowColor = "#ff4757"; c.shadowBlur = 14;
-            c.fillStyle = "#ff4757";
+            c.fillStyle = COLORS[CELL.EMPTY];
+            c.fillRect(x, y, cs, cs);
+            const r = cs * 0.34;
+            c.shadowColor = COLORS[CELL.GOAL]; c.shadowBlur = 16;
+            c.fillStyle = COLORS[CELL.GOAL];
             c.beginPath(); c.arc(cx, cy, r, 0, Math.PI*2); c.fill();
             c.shadowBlur = 0;
             c.fillStyle = COLORS[CELL.EMPTY];
-            c.beginPath(); c.arc(cx, cy, r*0.42, 0, Math.PI*2); c.fill();
+            c.beginPath(); c.arc(cx, cy, r * 0.4, 0, Math.PI*2); c.fill();
             break;
         }
 
         case CELL.VISITED:
-            c.fillStyle = "#16426e";
+            // Flat clear navy — readable, no heavy gradients
+            c.fillStyle = COLORS[CELL.VISITED];
             c.fillRect(x, y, cs, cs);
-            {   // bright center dot for visibility at any speed
-                const g2 = c.createRadialGradient(cx, cy, 0, cx, cy, cs * 0.6);
-                g2.addColorStop(0, "rgba(30,120,255,0.25)");
-                g2.addColorStop(1, "transparent");
-                c.fillStyle = g2; c.fillRect(x, y, cs, cs);
-            }
             break;
 
         case CELL.FRONTIER:
-            c.shadowColor = "#0099ff"; c.shadowBlur = 6;
-            c.fillStyle = "#0059b3";
+            // Bright electric blue — clearly distinct from visited navy
+            c.shadowColor = COLORS[CELL.FRONTIER]; c.shadowBlur = 8;
+            c.fillStyle = COLORS[CELL.FRONTIER];
             c.fillRect(x, y, cs, cs);
             break;
 
-        case CELL.PATH: {
-            const m = 3;
-            c.shadowColor = "#ffd32a"; c.shadowBlur = 9;
-            c.fillStyle = "#ffd32a";
-            c.fillRect(x+m, y+m, cs-m*2, cs-m*2);
+        case CELL.PATH:
+            // Full-cell gold with glow
+            c.shadowColor = COLORS[CELL.PATH]; c.shadowBlur = 14;
+            c.fillStyle = COLORS[CELL.PATH];
+            c.fillRect(x, y, cs, cs);
             break;
-        }
 
         default:
-            break; // EMPTY already drawn
+            // EMPTY
+            c.fillStyle = COLORS[CELL.EMPTY];
+            c.fillRect(x, y, cs, cs);
+            break;
     }
 
+    // Grid lines — visible enough to define the grid clearly
     c.shadowBlur = 0;
-    c.strokeStyle = "rgba(255,255,255,0.025)";
+    c.strokeStyle = "rgba(255,255,255,0.07)";
     c.lineWidth = 0.5;
     c.strokeRect(x, y, cs, cs);
 }
@@ -236,11 +232,11 @@ function animateReveal(c, col, row, state) {
         size = Math.min(size + step, cs);
         c.fillStyle = COLORS[CELL.EMPTY];
         c.fillRect(x, y, cs, cs);
-        c.strokeStyle = "rgba(255,255,255,0.025)";
+        c.strokeStyle = "rgba(255,255,255,0.07)";
         c.lineWidth = 0.5;
         c.strokeRect(x, y, cs, cs);
         c.shadowBlur = 0;
-        if (GLOW[state]) { c.shadowColor = GLOW[state]; c.shadowBlur = 6; }
+        if (GLOW[state]) { c.shadowColor = GLOW[state]; c.shadowBlur = 8; }
         c.fillStyle = COLORS[state] || COLORS[CELL.EMPTY];
         c.fillRect(cx - size/2, cy - size/2, size, size);
         c.shadowBlur = 0;
