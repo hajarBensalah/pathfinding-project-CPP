@@ -25,8 +25,21 @@
     <main class="main-layout">
         <aside class="control-panel">
 
+            <!-- RUNNING HUD — visible only while algo runs -->
+            <div class="running-hud" id="runningHud">
+                <div class="running-hud-algo" id="runningHudAlgo">BFS</div>
+                <div class="running-hud-live">
+                    <span class="running-hud-label">VISITED</span>
+                    <span class="running-hud-val" id="liveVisited">0</span>
+                </div>
+                <div class="running-hud-live">
+                    <span class="running-hud-label">TIME</span>
+                    <span class="running-hud-val" id="liveTime">00:00.000</span>
+                </div>
+            </div>
+
             <!-- MODE -->
-            <div class="panel-section">
+            <div class="panel-section collapsible">
                 <div class="section-label">MODE</div>
                 <div class="mode-tabs">
                     <button class="mode-tab active" id="tab-single"    onclick="setMode('single')">SINGLE</button>
@@ -36,7 +49,7 @@
             </div>
 
             <!-- ALGO 1 -->
-            <div class="panel-section" id="algo1Section">
+            <div class="panel-section collapsible" id="algo1Section">
                 <div class="section-label" id="algo1SectionLabel">ALGORITHM</div>
                 <div class="algo-buttons">
                     <button class="algo-btn active" data-algo="BFS"      onclick="selectAlgo(this,1)">BFS</button>
@@ -94,7 +107,7 @@
                     <button class="toggle-btn active" id="diagonalBtn" onclick="toggleDiagonal()">ON</button>
                 </div>
             </div>
-            <div class="panel-section" id="speedSection">
+            <div class="panel-section collapsible" id="speedSection">
                 <div class="section-label">SPEED</div>
                 <div class="speed-buttons">
                     <button class="speed-btn"        data-speed="120" onclick="selectSpeed(this)">SLOW</button>
@@ -105,7 +118,7 @@
             </div>
 
             <!-- TOOL -->
-            <div class="panel-section">
+            <div class="panel-section collapsible">
                 <div class="section-label">TOOL</div>
                 <div class="tool-buttons">
                     <button class="tool-btn active" data-tool="wall"  onclick="selectTool(this)"><span>▪</span> WALL</button>
@@ -114,7 +127,7 @@
             </div>
 
             <!-- MAZE -->
-            <div class="panel-section">
+            <div class="panel-section collapsible">
                 <div class="section-label">MAZE GENERATOR</div>
                 <div class="maze-buttons">
                     <button class="maze-btn" onclick="generateMaze('binary')">BINARY TREE</button>

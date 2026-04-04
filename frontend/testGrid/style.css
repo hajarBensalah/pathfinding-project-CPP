@@ -333,3 +333,88 @@ body {
     font-size: 10px;
     margin: 0 2px;
 }
+
+/* ── RUNNING HUD ─────────────────────────────────── */
+.running-hud {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,229,255,.04);
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
+.running-hud-algo {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-shadow: 0 0 16px var(--accent);
+    text-align: center;
+}
+.running-hud-live {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.running-hud-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+}
+.running-hud-val {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent3);
+}
+
+/* ── FOCUS / RUNNING MODE ────────────────────────── */
+.collapsible {
+    overflow: hidden;
+    max-height: 600px;
+    transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.3s ease;
+    opacity: 1;
+}
+
+body.is-running .collapsible {
+    max-height: 0 !important;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    pointer-events: none;
+}
+
+body.is-running .running-hud {
+    display: flex;
+}
+
+body.is-running .scanlines {
+    opacity: 0.3;
+}
+
+body.is-running .noise {
+    opacity: 0.1;
+}
+
+/* canvas pulses with a living border during run */
+@keyframes canvas-pulse {
+    0%,100% { box-shadow: 0 0 18px rgba(0,229,255,.12), inset 0 0 28px rgba(0,0,0,.5); }
+    50%      { box-shadow: 0 0 38px rgba(0,229,255,.28), inset 0 0 28px rgba(0,0,0,.5); }
+}
+body.is-running .grid-canvas {
+    animation: canvas-pulse 2s ease-in-out infinite;
+    border-color: rgba(0,229,255,.35);
+}
+
+/* stop button becomes more prominent while running */
+body.is-running .stop-btn {
+    background: rgba(255,71,87,.12);
+    box-shadow: 0 0 14px rgba(255,71,87,.18);
+}
+
+/* hide the floating timer — time is shown in HUD instead */
+body.is-running .timer-bar {
+    display: none !important;
+}

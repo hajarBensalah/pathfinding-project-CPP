@@ -668,12 +668,34 @@ function stopVisualization() {
 // ============================================
 // START ENTRY POINT
 // ============================================
+function enterRunningMode(algoLabel) {
+    document.body.classList.add('is-running');
+    document.getElementById('runningHudAlgo').textContent = algoLabel;
+    document.getElementById('liveVisited').textContent = '0';
+    document.getElementById('liveTime').textContent    = '00:00.000';
+}
+
+function exitRunningMode() {
+    document.body.classList.remove('is-running');
+}
+
+function updateLiveHud(visited) {
+    document.getElementById('liveVisited').textContent = visited;
+    if (startTime)
+        document.getElementById('liveTime').textContent = fmtTime(Date.now() - startTime);
+}
+
 async function startVisualization() {
     if (isRunning) return;
     resetVisuals();
     isRunning = true; stopRequested = false;
     document.getElementById('runBtn').disabled  = true;
     document.getElementById('stopBtn').disabled = false;
+
+    const algoLabel = mode === 'benchmark' ? 'BENCHMARK'
+        : selectedAlgo1 === 'A*' ? `A* · ${selectedHeur1.toUpperCase()}`
+        : selectedAlgo1;
+    enterRunningMode(algoLabel);
 
     try {
         if      (mode === 'single')    await runSingleMode();
@@ -684,6 +706,7 @@ async function startVisualization() {
         updateStatus('ERROR — backend offline?','error');
     }
 
+    exitRunningMode();
     isRunning = false; stopRequested = false;
     document.getElementById('runBtn').disabled  = false;
     document.getElementById('stopBtn').disabled = true;
@@ -730,6 +753,7 @@ async function runCompareMode() {
     startTimer();
     // RUN A
     updateStatus(`RUNNING ${lbl1}...`,'running');
+    document.getElementById('runningHudAlgo').textContent = lbl1.toUpperCase();
     await initBackend(buildPayload(selectedAlgo1, selectedHeur1, diag1, 1));
     const t1s = Date.now();
     const r1  = await runAlgoLoop(1, selectedSpeed);
@@ -740,6 +764,7 @@ async function runCompareMode() {
 
     // RUN B
     updateStatus(`RUNNING ${lbl2}...`,'running');
+    document.getElementById('runningHudAlgo').textContent = lbl2.toUpperCase();
     await initBackend(buildPayload(selectedAlgo2, selectedHeur2, diag2, 2));
     const t2s = Date.now();
     const r2  = await runAlgoLoop(2, selectedSpeed);
@@ -960,6 +985,7 @@ async function runAlgoLoop(g, speedKey) {
                 setCell(step.col, step.row, CELL.VISITED, g);
                 if (cfg.animate) animateReveal(ctx(g), step.col, step.row, CELL.VISITED);
                 else             drawCell(ctx(g), step.col, step.row, CELL.VISITED);
+                updateLiveHud(visited);
             }
 
             // Visualize frontiers
