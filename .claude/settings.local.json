@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(ls -1 *.js *.html)"
-    ]
-  }
-}
