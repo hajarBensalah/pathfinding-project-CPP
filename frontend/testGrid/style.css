@@ -80,7 +80,7 @@ body {
 .control-panel::-webkit-scrollbar       { width:3px; }
 .control-panel::-webkit-scrollbar-thumb { background:var(--border); }
 
-.panel-section             { padding:10px 0; border-bottom:1px solid var(--border); display:flex; flex-direction:column; gap:7px; }
+.panel-section             { padding:10px 0; border-bottom:1px solid var(--border); display:flex; flex-direction:column; gap:7px; flex-shrink:0; }
 .panel-section:last-child  { border-bottom:none; }
 .section-label             { font-family:var(--font-mono); font-size:10px; letter-spacing:3px; color:var(--accent); opacity:.75; }
 
@@ -265,7 +265,7 @@ body {
 .bench-panel {
     border-top:1px solid var(--border); background:var(--bg2);
     padding:14px 16px; display:flex; flex-direction:column; gap:10px;
-    max-height:52%; overflow:hidden;
+    flex: 0 0 42%; overflow:hidden;
 }
 .bench-panel.hidden { display:none; }
 

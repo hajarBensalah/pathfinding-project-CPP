@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { CELL, BENCH_COMBOS } from './constants.js';
 import { par, gs, ctx, setCell, sleep } from './grid.js';
-import { drawGrid, animateReveal, drawBenchOverlay } from './renderer.js';
+import { drawGrid, drawCell, animateReveal, drawBenchOverlay } from './renderer.js';
 import {
     updateStatus, updateSingleStats, enterRunningMode, exitRunningMode,
     updateLiveHud, startTimer, stopTimer, fmtTime,
@@ -146,11 +146,11 @@ export async function runBenchmarkMode() {
         const payload = buildPayload(combo.algo, combo.heuristic, combo.diagonal, 1);
         await initBackend(payload);
         const tStart = Date.now();
-        const res = await runAlgoLoop(1, 0); // always MAX speed for bench
+        const res = await runAlgoLoop(1, 2); // FAST speed — visible exploration, rAF-paced
         const elapsed = Date.now() - tStart;
 
         let pathLen = 0;
-        if (res.found) pathLen = await drawPath(1, res.goalStep);
+        if (res.found) pathLen = await drawPath(1, res.goalStep, true);
 
         const result = { ...combo, elapsed, visited: res.visited, pathLen, found: res.found, pathCells: res.pathCells || [] };
         results.push(result);
@@ -159,7 +159,7 @@ export async function runBenchmarkMode() {
         updateBenchRow(tbody, i, result);
         setProgress(i+1, combos.length);
 
-        await sleep(60); // brief pause so user sees grid
+        await sleep(300); // brief pause so user sees final grid state
     }
 
     stopTimer();
@@ -191,7 +191,7 @@ export async function runBenchmarkMode() {
 // ============================================
 // DRAW PATH
 // ============================================
-async function drawPath(g, goalStep) {
+async function drawPath(g, goalStep, fast = false) {
     const p = par(g); const s = gs(g); const c = ctx(g);
     let {col, row} = goalStep;
     const path = [];
@@ -204,9 +204,10 @@ async function drawPath(g, goalStep) {
     for (const pt of path) {
         if (s[pt.row][pt.col] !== CELL.START && s[pt.row][pt.col] !== CELL.GOAL) {
             setCell(pt.col, pt.row, CELL.PATH, g);
-            animateReveal(c, pt.col, pt.row, CELL.PATH);
+            if (fast) drawCell(c, pt.col, pt.row, CELL.PATH);
+            else      animateReveal(c, pt.col, pt.row, CELL.PATH);
         }
-        await sleep(55);
+        if (!fast) await sleep(55);
     }
     return path.length;
 }
