@@ -23,12 +23,14 @@ export const GLOW = {
     [CELL.VISITED]:  "#4f6ef7",
 };
 
-// Speed config: { batch = steps per HTTP call, delay = ms between calls, animate = use reveal animation }
+// Speed config: { batch, delay, animate, throttle }
+//   throttle: true  → yield to requestAnimationFrame between batches (smooth 60fps visual)
+//   throttle: false → run as fast as possible (MAX: just finish, SLOW/MID: delay handles pacing)
 export const SPEED_CONFIGS = {
-    120: { batch: 1,    delay: 80,  animate: true  },  // SLOW  — 1 step, animated, 80ms pause
-    20:  { batch: 3,    delay: 30,  animate: true  },  // MID   — 3 steps, animated, 30ms pause
-    2:   { batch: 30,   delay: 0,   animate: false },  // FAST  — 30 steps, no anim, no pause
-    0:   { batch: 2000, delay: 0,   animate: false },  // MAX   — all at once
+    120: { batch: 1,    delay: 80,  animate: true,  throttle: false },  // SLOW  — 1 step, animated, 80ms pause
+    20:  { batch: 3,    delay: 30,  animate: true,  throttle: false },  // MID   — 3 steps, animated, 30ms pause
+    2:   { batch: 30,   delay: 0,   animate: false, throttle: true  },  // FAST  — rAF-paced, smooth canvas updates
+    0:   { batch: 2000, delay: 0,   animate: false, throttle: false },  // MAX   — all at once, no visual pacing
 };
 
 export const BENCH_PATH_COLORS = [

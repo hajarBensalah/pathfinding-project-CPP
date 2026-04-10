@@ -115,7 +115,8 @@ export async function runAlgoLoop(g, speedKey) {
             return { found:false, visited, goalStep:null, pathCells:[], elapsed: Date.now()-tStart };
         }
 
-        if (cfg.delay > 0) await sleep(cfg.delay);
+        if      (cfg.delay    > 0) await sleep(cfg.delay);
+        else if (cfg.throttle)    await new Promise(requestAnimationFrame);
     }
 }
 

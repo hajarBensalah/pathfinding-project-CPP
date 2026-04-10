@@ -60,12 +60,12 @@ export function drawCell(c, col, row, cellState) {
             break;
 
         case CELL.FRONTIER:
-            c.shadowColor = COLORS[CELL.FRONTIER]; c.shadowBlur = 12;
+            // No shadowBlur — frontier cells are drawn up to ~90× per batch at FAST/MAX speed;
+            // blur is too expensive here. The bright fill color is distinctive enough.
             c.fillStyle = COLORS[CELL.FRONTIER];
             c.beginPath();
             c.roundRect(rx, ry, rw, rh, radius);
             c.fill();
-            c.shadowBlur = 0;
             // Bright center dot
             c.fillStyle = "rgba(255,255,255,0.4)";
             c.beginPath();
