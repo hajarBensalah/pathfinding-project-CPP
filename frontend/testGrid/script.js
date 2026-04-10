@@ -9,20 +9,23 @@ const API = window.APP_CONFIG ? window.APP_CONFIG.API_BASE : "http://localhost:8
 
 const CELL = { EMPTY:0, WALL:1, START:2, GOAL:3, VISITED:4, PATH:5, FRONTIER:6 };
 
+const BG_COLOR = "#080c14";
+
 const COLORS = {
-    [CELL.EMPTY]:    "#0d1120",
-    [CELL.WALL]:     "#060810",   // near-black, clearly distinct from empty
-    [CELL.START]:    "#00e676",
-    [CELL.GOAL]:     "#ff3d57",
-    [CELL.VISITED]:  "#1976d2",   // light blue — clearly visible explored cells
-    [CELL.FRONTIER]: "#2979ff",   // bright electric blue — distinct from visited
-    [CELL.PATH]:     "#ffd32a",
+    [CELL.EMPTY]:    BG_COLOR,
+    [CELL.WALL]:     "#1e2840",
+    [CELL.START]:    "#10d9a0",
+    [CELL.GOAL]:     "#f43f5e",
+    [CELL.VISITED]:  "#3b5bdb",
+    [CELL.FRONTIER]: "#60a5fa",
+    [CELL.PATH]:     "#f59e0b",
 };
 const GLOW = {
-    [CELL.START]:    "#00e676",
-    [CELL.GOAL]:     "#ff3d57",
-    [CELL.PATH]:     "#ffd32a",
-    [CELL.FRONTIER]: "#60a5fa",
+    [CELL.START]:    "#10d9a0",
+    [CELL.GOAL]:     "#f43f5e",
+    [CELL.PATH]:     "#f59e0b",
+    [CELL.FRONTIER]: "#93c5fd",
+    [CELL.VISITED]:  "#4f6ef7",
 };
 
 // Speed config: { batch = steps per HTTP call, delay = ms between calls, animate = use reveal animation }
@@ -33,9 +36,9 @@ const SPEED_CONFIGS = {
     0:   { batch: 2000, delay: 0,   animate: false },  // MAX   — all at once
 };
 const BENCH_PATH_COLORS = [
-    { stroke: '#00e5ff', glow: '#00e5ff', label: '1ST' },  // cyan
-    { stroke: '#ff4757', glow: '#ff4757', label: '2ND' },  // red
-    { stroke: '#a855f7', glow: '#a855f7', label: '3RD' },  // purple
+    { stroke: '#10d9a0', glow: '#10d9a0', label: '1ST' },  // mint
+    { stroke: '#f43f5e', glow: '#f43f5e', label: '2ND' },  // rose
+    { stroke: '#a78bfa', glow: '#a78bfa', label: '3RD' },  // violet
 ];
 let mode         = 'single';
 let selectedAlgo1= 'BFS';
@@ -150,98 +153,137 @@ function drawCell(c, col, row, state) {
     const cs = activeCellSize;
     const x = col * cs, y = row * cs;
     const cx = x + cs / 2, cy = y + cs / 2;
+    const gap = cs > 10 ? 1.5 : 1;
+    const rx = x + gap, ry = y + gap;
+    const rw = cs - gap * 2, rh = cs - gap * 2;
+    const radius = Math.max(2, cs * 0.15);
 
+    // Paint background slot
     c.shadowBlur = 0;
+    c.fillStyle = BG_COLOR;
+    c.fillRect(x, y, cs, cs);
 
     switch (state) {
-        case CELL.WALL:
-            // Clearly distinct from empty: near-black with a faint inset border
-            c.fillStyle = COLORS[CELL.WALL];
-            c.fillRect(x, y, cs, cs);
-            c.strokeStyle = "rgba(80,100,160,0.12)";
-            c.lineWidth = 1;
-            c.strokeRect(x + 0.5, y + 0.5, cs - 1, cs - 1);
-            break;
-
-        case CELL.START:
-            c.fillStyle = COLORS[CELL.EMPTY];
-            c.fillRect(x, y, cs, cs);
-            c.shadowColor = COLORS[CELL.START]; c.shadowBlur = 16;
-            c.fillStyle = COLORS[CELL.START];
+        case CELL.EMPTY:
+            // Subtle dot at center to show the grid exists
+            c.fillStyle = "rgba(255,255,255,0.04)";
             c.beginPath();
-            c.moveTo(x + cs*0.22, y + cs*0.16);
-            c.lineTo(x + cs*0.82, y + cs*0.5);
-            c.lineTo(x + cs*0.22, y + cs*0.84);
-            c.closePath(); c.fill();
+            c.arc(cx, cy, 1, 0, Math.PI * 2);
+            c.fill();
             break;
 
-        case CELL.GOAL: {
-            c.fillStyle = COLORS[CELL.EMPTY];
-            c.fillRect(x, y, cs, cs);
-            const r = cs * 0.34;
-            c.shadowColor = COLORS[CELL.GOAL]; c.shadowBlur = 16;
-            c.fillStyle = COLORS[CELL.GOAL];
-            c.beginPath(); c.arc(cx, cy, r, 0, Math.PI*2); c.fill();
-            c.shadowBlur = 0;
-            c.fillStyle = COLORS[CELL.EMPTY];
-            c.beginPath(); c.arc(cx, cy, r * 0.4, 0, Math.PI*2); c.fill();
+        case CELL.WALL:
+            c.fillStyle = COLORS[CELL.WALL];
+            c.beginPath();
+            c.roundRect(rx, ry, rw, rh, radius);
+            c.fill();
+            // Subtle top-edge highlight
+            c.fillStyle = "rgba(255,255,255,0.05)";
+            c.fillRect(rx + 2, ry + 1, rw - 4, 1);
             break;
-        }
 
         case CELL.VISITED:
-            // Flat clear navy — readable, no heavy gradients
-            c.fillStyle = COLORS[CELL.VISITED];
-            c.fillRect(x, y, cs, cs);
+            c.fillStyle = "rgba(59,91,219,0.72)";
+            c.beginPath();
+            c.roundRect(rx, ry, rw, rh, radius);
+            c.fill();
+            // Inner highlight top
+            c.fillStyle = "rgba(255,255,255,0.06)";
+            c.fillRect(rx + 2, ry + 1, rw - 4, 1);
             break;
 
         case CELL.FRONTIER:
-            // Bright electric blue — clearly distinct from visited navy
-            c.shadowColor = COLORS[CELL.FRONTIER]; c.shadowBlur = 8;
+            c.shadowColor = COLORS[CELL.FRONTIER]; c.shadowBlur = 12;
             c.fillStyle = COLORS[CELL.FRONTIER];
-            c.fillRect(x, y, cs, cs);
+            c.beginPath();
+            c.roundRect(rx, ry, rw, rh, radius);
+            c.fill();
+            c.shadowBlur = 0;
+            // Bright center dot
+            c.fillStyle = "rgba(255,255,255,0.4)";
+            c.beginPath();
+            c.arc(cx, cy, cs * 0.12, 0, Math.PI * 2);
+            c.fill();
             break;
 
         case CELL.PATH:
-            // Full-cell gold with glow
-            c.shadowColor = COLORS[CELL.PATH]; c.shadowBlur = 14;
+            c.shadowColor = COLORS[CELL.PATH]; c.shadowBlur = 18;
             c.fillStyle = COLORS[CELL.PATH];
-            c.fillRect(x, y, cs, cs);
+            c.beginPath();
+            c.roundRect(rx, ry, rw, rh, radius);
+            c.fill();
+            c.shadowBlur = 0;
+            // Inner glow stripe
+            c.fillStyle = "rgba(255,255,255,0.2)";
+            c.fillRect(rx + 2, ry + 1, rw - 4, 2);
             break;
 
-        default:
-            // EMPTY
-            c.fillStyle = COLORS[CELL.EMPTY];
-            c.fillRect(x, y, cs, cs);
+        case CELL.START: {
+            // Tinted tile background
+            c.fillStyle = "rgba(16,217,160,0.12)";
+            c.beginPath();
+            c.roundRect(rx, ry, rw, rh, radius);
+            c.fill();
+            // Arrow pointing right
+            c.shadowColor = COLORS[CELL.START]; c.shadowBlur = 16;
+            c.fillStyle = COLORS[CELL.START];
+            c.beginPath();
+            c.moveTo(x + cs * 0.22, y + cs * 0.2);
+            c.lineTo(x + cs * 0.78, y + cs * 0.5);
+            c.lineTo(x + cs * 0.22, y + cs * 0.8);
+            c.closePath();
+            c.fill();
+            c.shadowBlur = 0;
             break;
+        }
+
+        case CELL.GOAL: {
+            // Tinted tile background
+            c.fillStyle = "rgba(244,63,94,0.12)";
+            c.beginPath();
+            c.roundRect(rx, ry, rw, rh, radius);
+            c.fill();
+            // Outer ring
+            c.shadowColor = COLORS[CELL.GOAL]; c.shadowBlur = 16;
+            c.strokeStyle = COLORS[CELL.GOAL];
+            c.lineWidth = Math.max(1, cs * 0.08);
+            c.beginPath();
+            c.arc(cx, cy, cs * 0.3, 0, Math.PI * 2);
+            c.stroke();
+            // Inner filled dot
+            c.fillStyle = COLORS[CELL.GOAL];
+            c.beginPath();
+            c.arc(cx, cy, cs * 0.12, 0, Math.PI * 2);
+            c.fill();
+            c.shadowBlur = 0;
+            break;
+        }
     }
-
-    // Grid lines — thinner on processed cells, visible on empty/wall
     c.shadowBlur = 0;
-    const processed = state === CELL.VISITED || state === CELL.FRONTIER || state === CELL.PATH;
-    c.strokeStyle = processed ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.07)";
-    c.lineWidth = 0.5;
-    c.strokeRect(x, y, cs, cs);
 }
 
 function animateReveal(c, col, row, state) {
     const cs = activeCellSize;
     const x = col*cs, y = row*cs;
     const cx = x + cs/2, cy = y + cs/2;
-    let size = 2;
-    const step = cs / 3.5;
+    // Circle expands from center until it fills the cell corner-to-corner
+    const maxR = cs * 0.72;
+    let r = 1;
+    const step = maxR / 5;
     function frame() {
-        size = Math.min(size + step, cs);
-        c.fillStyle = COLORS[CELL.EMPTY];
+        r = Math.min(r + step, maxR);
+        // Clear slot
+        c.fillStyle = BG_COLOR;
         c.fillRect(x, y, cs, cs);
-        c.strokeStyle = "rgba(255,255,255,0.07)";
-        c.lineWidth = 0.5;
-        c.strokeRect(x, y, cs, cs);
+        // Clipped expanding circle
+        c.save();
+        c.beginPath(); c.rect(x, y, cs, cs); c.clip();
+        if (GLOW[state]) { c.shadowColor = GLOW[state]; c.shadowBlur = 10; }
+        c.fillStyle = COLORS[state] || COLORS[CELL.VISITED];
+        c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+        c.restore();
         c.shadowBlur = 0;
-        if (GLOW[state]) { c.shadowColor = GLOW[state]; c.shadowBlur = 8; }
-        c.fillStyle = COLORS[state] || COLORS[CELL.EMPTY];
-        c.fillRect(cx - size/2, cy - size/2, size, size);
-        c.shadowBlur = 0;
-        if (size < cs) requestAnimationFrame(frame);
+        if (r < maxR) requestAnimationFrame(frame);
         else drawCell(c, col, row, state);
     }
     requestAnimationFrame(frame);
